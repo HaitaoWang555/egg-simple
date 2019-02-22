@@ -15,6 +15,13 @@ module.exports = appInfo => {
       enable: false,
     },
   };
-
+  config.sequelize = {
+    dialect: 'postgres',
+    database: 'egg-example',
+    host: 'localhost',
+    port: 5432,
+    username: 'postgres',
+    password: 123456,
+  };
   return config;
 };

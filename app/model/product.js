@@ -1,38 +1,48 @@
 'use strict';
 
-const products = [
-  {
-    id: '1',
-    name: '商品1',
-    priceInCent: 8600, // 分
-  },
-  {
-    id: '2',
-    name: '商品2',
-    priceInCent: 5600, // 分
-  },
-  {
-    id: '3',
-    name: '商品3',
-    priceInCent: 4600, // 分
-  },
-];
+const uuid = require('uuid/v4');
 
-class ProductModel {
-  async list() {
+module.exports = app => {
+  const { UUID, STRING, INTEGER, DATE } = app.Sequelize;
+
+  const Product = app.model.define('product', {
+    id: { type: UUID, primaryKey: true },
+    name: STRING,
+    priceInCent: { type: INTEGER, min: 0 },
+    created_at: DATE,
+    updated_at: DATE,
+  });
+  Product.sync()
+    .catch(e => {
+      app.loggers.appLogger.error('error syncing sequelize model', {
+        error: e,
+        model: 'Product',
+      });
+    });
+
+  Product.list = async (query = { limit: 10, offset: 0 }) => {
+    const { limit, offset } = query;
+    const products = await Product.findAll({
+      limit,
+      offset,
+    });
     return products;
-  }
-  async addOne(product) {
-    if (!product.id && !product.name) {
-      throw Error('invalid product');
-    }
-    products.push(product);
-    return products;
-  }
-  async getOneById(id) {
-    const product = products.find(p => p.id === id);
+  };
+
+  Product.addOne = async product => {
+    const toCreate = Object.assign({}, product);
+    toCreate.id = uuid();
+    const created = Product.create(toCreate);
+    return created;
+  };
+
+  Product.getOneById = async id => {
+    const product = Product.findOne({
+      where: {
+        id,
+      },
+    });
     return product;
-  }
-}
-
-module.exports = ProductModel;
+  };
+  return Product;
+};
