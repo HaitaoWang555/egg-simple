@@ -3,18 +3,16 @@
 const uuid = require('uuid/v4');
 
 module.exports = app => {
-  const { UUID, STRING, INTEGER, DATE } = app.Sequelize;
+  const { UUID, STRING, INTEGER } = app.Sequelize;
 
   const Product = app.model.define('product', {
     id: { type: UUID, primaryKey: true },
-    name: STRING,
+    name: { type: STRING, unique: true },
     priceInCent: { type: INTEGER, min: 0 },
-    created_at: DATE,
-    updated_at: DATE,
   });
   Product.sync()
     .catch(e => {
-      app.loggers.appLogger.error('error syncing sequelize model', {
+      app.logger.error('error syncing sequelize model', {
         error: e,
         model: 'Product',
       });
@@ -32,7 +30,11 @@ module.exports = app => {
   Product.addOne = async product => {
     const toCreate = Object.assign({}, product);
     toCreate.id = uuid();
-    const created = Product.create(toCreate);
+    const created = Product
+      .create(toCreate)
+      .catch(e => {
+        app.logger.error(e.errors);
+      });
     return created;
   };
 
