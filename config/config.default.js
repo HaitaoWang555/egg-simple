@@ -23,5 +23,21 @@ module.exports = appInfo => {
     username: 'postgres',
     password: 123456,
   };
+  config.onerror = {
+    json(err, ctx) {
+      const { code, httpStatusCode, httpMsg } = err;
+      if (httpStatusCode) ctx.statusCode = httpStatusCode;
+      ctx.body = {
+        code,
+        msg: httpMsg,
+      };
+    },
+    html(err, ctx) {
+      const { code, httpStatusCode, httpMsg } = err;
+      if (httpStatusCode) ctx.statusCode = httpStatusCode;
+      ctx.body = `<h3>${httpMsg}</h3>`;
+      ctx.code = code;
+    },
+  };
   return config;
 };

@@ -28,6 +28,11 @@ module.exports = app => {
   };
 
   Product.addOne = async product => {
+    if (!product.name) {
+      throw new app.error.InvalidParam('name', 'name is STRING', '请输入商品名字');
+    } else if (!product.priceInCent) {
+      throw new app.error.InvalidParam('priceInCent', 'priceInCent is INTEGER', '请输入商品价格');
+    }
     const toCreate = Object.assign({}, product);
     toCreate.id = uuid();
     const created = Product
